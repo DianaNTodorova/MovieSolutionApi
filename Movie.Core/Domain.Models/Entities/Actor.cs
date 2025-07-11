@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace MovieApi.Models
+namespace Movie.Core.Domain.Models.Entities
 {
     public class Actor
     {

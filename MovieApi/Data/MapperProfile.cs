@@ -1,6 +1,4 @@
 ﻿using AutoMapper;
-using MovieApi.Models;
-using MovieApi.Models.DTOs;
 
 namespace MovieApi.Data
 {
@@ -31,12 +29,12 @@ namespace MovieApi.Data
                 .ForMember(dest => dest.Language, opt => opt.MapFrom(src => src.MovieDetails.Language))
                 .ForMember(dest => dest.Budget, opt => opt.MapFrom(src => src.MovieDetails.Budget));
 
-            
+
             CreateMap<Actor, ActorDto>().ReverseMap();
             CreateMap<MovieDetails, MovieDetailsDto>().ReverseMap();
             CreateMap<Review, ReviewDto>().ReverseMap();
         }
     }
 }
-    
+
 

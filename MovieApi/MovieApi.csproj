@@ -28,6 +28,11 @@
 
   <ItemGroup>
     <Folder Include="Migrations\" />
+    <Folder Include="Models\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Movie.Core\Movie.Core.csproj" />
   </ItemGroup>
 
 </Project>

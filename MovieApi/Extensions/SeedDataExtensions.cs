@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using MovieApi.Data;
-using MovieApi.Models;
 
 public static class SeedDataExtensions
 {
@@ -33,23 +32,23 @@ public static class SeedDataExtensions
                 MovieDetails = new MovieDetails { Synopsis = "Some great movie", Language = "English", Budget = 100000 }
             },
             new Movie
-    {
-            Title = "Inception",
-            Year = new DateTime(2010, 7, 16),
-            Duration = 2,
-    Genre = "Sci-Fi",
-    Reviews = new List<Review>
+            {
+                Title = "Inception",
+                Year = new DateTime(2010, 7, 16),
+                Duration = 2,
+                Genre = "Sci-Fi",
+                Reviews = new List<Review>
     {
         new Review { Rating = 5, Comment = "Mind-bending masterpiece!" },
         new Review { Rating = 4, Comment = "Creative and thrilling plot!" }
     },
-    Actor = new List<Actor>
+                Actor = new List<Actor>
     {
         new Actor { Name = "Leonardo DiCaprio", BirthYear = new DateTime(1974, 11, 11) },
         new Actor { Name = "Joseph Gordon-Levitt", BirthYear = new DateTime(1981, 2, 17) }
     },
-    MovieDetails = new MovieDetails { Synopsis = "A thief who enters the dreams of others to steal their secrets.", Language = "English", Budget = 160000000 }
-},
+                MovieDetails = new MovieDetails { Synopsis = "A thief who enters the dreams of others to steal their secrets.", Language = "English", Budget = 160000000 }
+            },
 new Movie
 {
     Title = "The Matrix",
@@ -70,10 +69,10 @@ new Movie
 }
 
             );
-         
+
             context.SaveChanges();
         }
 
-   
+
     }
 }

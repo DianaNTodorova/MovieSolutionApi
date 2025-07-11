@@ -1,14 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using AutoMapper;
-using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MovieApi.Data;
-using MovieApi.Models;
-using MovieApi.Models.DTOs;
 
 namespace MovieApi.Controllers
 {
@@ -57,9 +50,9 @@ namespace MovieApi.Controllers
                 return BadRequest();
             }
 
-           
+
             var actor = await _context.Actor
-                .Include(a => a.Movie) 
+                .Include(a => a.Movie)
                 .FirstOrDefaultAsync(a => a.Id == id);
 
             if (actor == null)
@@ -67,10 +60,10 @@ namespace MovieApi.Controllers
                 return NotFound();
             }
 
-           
+
             _mapper.Map(actorDto, actor);
 
-           
+
             if (actorDto.MovieIds != null)
             {
                 // Actor => Movies based on the list of Movie IDs in actorDto

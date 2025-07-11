@@ -1,4 +1,4 @@
-﻿namespace MovieApi.Models.DTOs
+﻿namespace Movie.Core.Domain.Models.DTOs
 {
     public class MovieDto
     {

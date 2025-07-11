@@ -1,15 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using AutoMapper;
-using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.CodeAnalysis.Elfie.Model;
 using Microsoft.EntityFrameworkCore;
 using MovieApi.Data;
-using MovieApi.Models;
-using MovieApi.Models.DTOs;
 
 namespace MovieApi.Controllers
 {
@@ -30,12 +22,12 @@ namespace MovieApi.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Review>>> GetReview()
         {
-            var review= await _context.Review.ToListAsync();
+            var review = await _context.Review.ToListAsync();
             if (review == null || !review.Any())
             {
                 return NotFound();
             }
-           
+
             var reviewDtos = _mapper.Map<IEnumerable<ReviewDto>>(review);
             return Ok(reviewDtos);
         }
@@ -69,7 +61,7 @@ namespace MovieApi.Controllers
                 .FirstOrDefaultAsync(a => a.Id == id);
 
             _mapper.Map(reviewDto, review);
-            if(reviewDto.MovieIds !=null)
+            if (reviewDto.MovieIds != null)
             {
 
                 var movies = await _context.Movie

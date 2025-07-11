@@ -1,9 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using MovieApi.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace MovieApi.Data
 {
@@ -32,7 +27,7 @@ namespace MovieApi.Data
             modelBuilder.Entity<Movie>()
                 .HasMany(a => a.Actor)
                 .WithMany(m => m.Movie);
-          
+
             // Configure the one-to-one relationship between Movie and MovieDetails
             modelBuilder.Entity<Movie>()
                 .HasOne(m => m.MovieDetails)
