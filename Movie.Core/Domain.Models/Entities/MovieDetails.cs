@@ -11,7 +11,7 @@ namespace Movie.Core.Domain.Models.Entities
         public string Language { get; set; } = string.Empty;
         public int Budget { get; set; }
         //navigation property to ling Movie and Movie details
-        public Movie Movie { get; set; } = null!;
+        public Movies Movie { get; set; } = null!;
 
     }
 }

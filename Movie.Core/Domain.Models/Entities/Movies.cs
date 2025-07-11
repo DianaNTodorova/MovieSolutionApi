@@ -1,6 +1,6 @@
 ﻿namespace Movie.Core.Domain.Models.Entities
 {
-    public class Movie
+    public class Movies
     {
         public int Id { get; set; }
         public string Title { get; set; } = string.Empty;

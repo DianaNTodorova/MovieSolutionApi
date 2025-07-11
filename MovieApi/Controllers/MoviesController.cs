@@ -145,7 +145,7 @@ namespace MovieApi.Controllers
         [HttpPost]
         public async Task<ActionResult<MovieDto>> PostMovie(MovieCreateDto movieDto)
         {
-            var movie = _mapper.Map<Movie>(movieDto);
+            var movie = _mapper.Map<Movies>(movieDto);
 
             _context.Movie.Add(movie);
             await _context.SaveChangesAsync();

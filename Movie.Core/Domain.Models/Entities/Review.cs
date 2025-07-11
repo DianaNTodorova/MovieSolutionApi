@@ -9,6 +9,6 @@
         public int Rating { get; set; } 
         
         // Navigation property to link to the Movie
-        public Movie Movie { get; set; } = null!;
+        public Movies Movie { get; set; } = null!;
     }
 }

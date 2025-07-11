@@ -13,7 +13,7 @@ public static class SeedDataExtensions
         if (!context.Movie.Any())
         {
             context.Movie.AddRange(
-            new Movie
+            new Movies
             {
                 Title = "Titanic",
                 Year = new DateTime(2014, 4, 4),
@@ -31,7 +31,7 @@ public static class SeedDataExtensions
     },
                 MovieDetails = new MovieDetails { Synopsis = "Some great movie", Language = "English", Budget = 100000 }
             },
-            new Movie
+            new Movies
             {
                 Title = "Inception",
                 Year = new DateTime(2010, 7, 16),
@@ -49,7 +49,7 @@ public static class SeedDataExtensions
     },
                 MovieDetails = new MovieDetails { Synopsis = "A thief who enters the dreams of others to steal their secrets.", Language = "English", Budget = 160000000 }
             },
-new Movie
+new Movies
 {
     Title = "The Matrix",
     Year = new DateTime(1999, 3, 31),

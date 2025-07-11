@@ -7,7 +7,7 @@ namespace MovieApi.Data
         public DbSet<Actor> Actor { get; set; } = default!;
         public DbSet<MovieDetails> MovieDetails { get; set; } = default!;
         public DbSet<Review> Review { get; set; } = default!;
-        public DbSet<Movie> Movie { get; set; } = default!;
+        public DbSet<Movies> Movie { get; set; } = default!;
         public DbSet<MovieActor> MovieActor { get; set; }
 
         public MovieApiContext(DbContextOptions<MovieApiContext> options)
@@ -24,17 +24,17 @@ namespace MovieApi.Data
             //modelBuilder.Entity<Review>().Property(r => r.Id).ValueGeneratedNever();
 
             // Configure the many-to-many relationship between Movie and Actor
-            modelBuilder.Entity<Movie>()
+            modelBuilder.Entity<Movies>()
                 .HasMany(a => a.Actor)
                 .WithMany(m => m.Movie);
 
             // Configure the one-to-one relationship between Movie and MovieDetails
-            modelBuilder.Entity<Movie>()
+            modelBuilder.Entity<Movies>()
                 .HasOne(m => m.MovieDetails)
                 .WithOne(md => md.Movie)
                 .HasForeignKey<MovieDetails>(md => md.MovieId);
             // Configure the one-to-many relationship between Movie and Review
-            modelBuilder.Entity<Movie>()
+            modelBuilder.Entity<Movies>()
                 .HasMany(m => m.Reviews)
                 .WithOne(r => r.Movie)
                 .HasForeignKey(r => r.MovieId);
