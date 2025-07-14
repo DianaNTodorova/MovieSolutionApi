@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using MovieApi.Models;
+using Movie.Core.Domain.Models.Entities;
+
 
 namespace MovieApi.Extensions
 {
@@ -13,9 +14,9 @@ namespace MovieApi.Extensions
               new Actor { Id = 2, Name = "Kate Winslet", BirthYear = new DateTime(1975, 10, 5) }
           );
           // Seed Movies
-          modelBuilder.Entity<Movie>().HasData(
-              new Movie { Id = 1, Title = "Titanic", Year = new DateTime(1997, 12, 19) },
-              new Movie { Id = 2, Title = "Inception", Year = new DateTime(2010, 7, 16) }
+          modelBuilder.Entity<Movies>().HasData(
+              new Movies { Id = 1, Title = "Titanic", Year = new DateTime(1997, 12, 19) },
+              new Movies { Id = 2, Title = "Inception", Year = new DateTime(2010, 7, 16) }
           );
           // Seed MovieDetails
           modelBuilder.Entity<MovieDetails>().HasData(

@@ -9,10 +9,10 @@ namespace MovieApi.Controllers
     [ApiController]
     public class ReviewsController : ControllerBase
     {
-        private readonly MovieApiContext _context;
+        private readonly MovieDbContext _context;
         private readonly IMapper _mapper;
 
-        public ReviewsController(MovieApiContext context, IMapper mapper)
+        public ReviewsController(MovieDbContext context, IMapper mapper)
         {
             _context = context;
             _mapper = mapper;
@@ -64,7 +64,7 @@ namespace MovieApi.Controllers
             if (reviewDto.MovieIds != null)
             {
 
-                var movies = await _context.Movie
+                var movies = await _context.Movies
                     .Where(m => reviewDto.MovieIds.Contains(m.Id))
                     .ToListAsync();
                 //review.Movie = movies;

@@ -5,9 +5,9 @@ using AutoMapper;
 var builder = WebApplication.CreateBuilder(args);
 
 
-builder.Services.AddDbContext<MovieApiContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("MovieApiContext")
-        ?? throw new InvalidOperationException("Connection string 'MovieApiContext' not found.")));
+builder.Services.AddDbContext<MovieDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("MovieContext"),
+        b => b.MigrationsAssembly("Movie.Data")));
 
 
 builder.Services.AddControllers()

@@ -3,10 +3,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace MovieApi.Migrations
+namespace Movie.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class init : Migration
+    public partial class NewInit : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -27,7 +27,7 @@ namespace MovieApi.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Movie",
+                name: "Movies",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -39,11 +39,11 @@ namespace MovieApi.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Movie", x => x.Id);
+                    table.PrimaryKey("PK_Movies", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "ActorMovie",
+                name: "ActorMovies",
                 columns: table => new
                 {
                     ActorId = table.Column<int>(type: "int", nullable: false),
@@ -51,17 +51,42 @@ namespace MovieApi.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ActorMovie", x => new { x.ActorId, x.MovieId });
+                    table.PrimaryKey("PK_ActorMovies", x => new { x.ActorId, x.MovieId });
                     table.ForeignKey(
-                        name: "FK_ActorMovie_Actor_ActorId",
+                        name: "FK_ActorMovies_Actor_ActorId",
                         column: x => x.ActorId,
                         principalTable: "Actor",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_ActorMovie_Movie_MovieId",
+                        name: "FK_ActorMovies_Movies_MovieId",
                         column: x => x.MovieId,
-                        principalTable: "Movie",
+                        principalTable: "Movies",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "MovieActor",
+                columns: table => new
+                {
+                    MovieId = table.Column<int>(type: "int", nullable: false),
+                    ActorId = table.Column<int>(type: "int", nullable: false),
+                    Role = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MovieActor", x => new { x.MovieId, x.ActorId });
+                    table.ForeignKey(
+                        name: "FK_MovieActor_Actor_ActorId",
+                        column: x => x.ActorId,
+                        principalTable: "Actor",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_MovieActor_Movies_MovieId",
+                        column: x => x.MovieId,
+                        principalTable: "Movies",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -81,9 +106,9 @@ namespace MovieApi.Migrations
                 {
                     table.PrimaryKey("PK_MovieDetails", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_MovieDetails_Movie_MovieId",
+                        name: "FK_MovieDetails_Movies_MovieId",
                         column: x => x.MovieId,
-                        principalTable: "Movie",
+                        principalTable: "Movies",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -103,17 +128,22 @@ namespace MovieApi.Migrations
                 {
                     table.PrimaryKey("PK_Review", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Review_Movie_MovieId",
+                        name: "FK_Review_Movies_MovieId",
                         column: x => x.MovieId,
-                        principalTable: "Movie",
+                        principalTable: "Movies",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_ActorMovie_MovieId",
-                table: "ActorMovie",
+                name: "IX_ActorMovies_MovieId",
+                table: "ActorMovies",
                 column: "MovieId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MovieActor_ActorId",
+                table: "MovieActor",
+                column: "ActorId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_MovieDetails_MovieId",
@@ -131,7 +161,10 @@ namespace MovieApi.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "ActorMovie");
+                name: "ActorMovies");
+
+            migrationBuilder.DropTable(
+                name: "MovieActor");
 
             migrationBuilder.DropTable(
                 name: "MovieDetails");
@@ -143,7 +176,7 @@ namespace MovieApi.Migrations
                 name: "Actor");
 
             migrationBuilder.DropTable(
-                name: "Movie");
+                name: "Movies");
         }
     }
 }

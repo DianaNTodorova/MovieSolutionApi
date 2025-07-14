@@ -3,16 +3,17 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MovieApi.Data;
 
+
 namespace MovieApi.Controllers
 {
     [Route("api/actors")]
     [ApiController]
     public class ActorsController : ControllerBase
     {
-        private readonly MovieApiContext _context;
+        private readonly MovieDbContext _context;
         private readonly IMapper _mapper;
 
-        public ActorsController(MovieApiContext context, IMapper mapper)
+        public ActorsController(MovieDbContext context, IMapper mapper)
         {
             _context = context;
             _mapper = mapper;
@@ -67,7 +68,7 @@ namespace MovieApi.Controllers
             if (actorDto.MovieIds != null)
             {
                 // Actor => Movies based on the list of Movie IDs in actorDto
-                var movies = await _context.Movie
+                var movies = await _context.Movies
                     .Where(m => actorDto.MovieIds.Contains(m.Id))
                     .ToListAsync();
 

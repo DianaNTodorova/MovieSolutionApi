@@ -9,10 +9,10 @@ namespace MovieApi.Controllers
     [ApiController]
     public class MoviesController : ControllerBase
     {
-        private readonly MovieApiContext _context;
+        private readonly MovieDbContext _context;
         private readonly IMapper _mapper;
 
-        public MoviesController(MovieApiContext context, IMapper mapper)
+        public MoviesController(MovieDbContext context, IMapper mapper)
         {
             _context = context;
             _mapper = mapper;
@@ -22,7 +22,7 @@ namespace MovieApi.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<MovieDto>>> GetMovie()
         {
-            var movies = await _context.Movie
+            var movies = await _context.Movies
                 .Include(m => m.MovieDetails)
                 .Include(m => m.Reviews)
                 .Include(m => m.Actor)
@@ -36,7 +36,7 @@ namespace MovieApi.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<MovieDto>> GetMovie(int id)
         {
-            var movie = await _context.Movie
+            var movie = await _context.Movies
                 .Include(m => m.MovieDetails)
                 .Include(m => m.Reviews)
                 .Include(m => m.Actor)
@@ -55,7 +55,7 @@ namespace MovieApi.Controllers
         [HttpGet("{id}/details")]
         public async Task<ActionResult<MovieDetailsDto>> GetMovieDetails(int id)
         {
-            var movie = await _context.Movie
+            var movie = await _context.Movies
                 .Where(m => m.Id == id)
                 .Select(m => new //using anonymous function worked with nested details
                 {
@@ -100,7 +100,7 @@ namespace MovieApi.Controllers
                 return BadRequest("ID mismatch");
             }
 
-            var movie = await _context.Movie.FindAsync(id);
+            var movie = await _context.Movies.FindAsync(id);
             if (movie == null)
             {
                 return NotFound();
@@ -122,7 +122,7 @@ namespace MovieApi.Controllers
         [HttpPost("{movieId}/actors")]
         public async Task<IActionResult> AddActorToMovie(int movieId, MovieActorCreateDto dto)
         {
-            var movie = await _context.Movie.FindAsync(movieId);
+            var movie = await _context.Movies.FindAsync(movieId);
             if (movie == null) return NotFound();
 
             var actor = await _context.Actor.FindAsync(dto.ActorId);
@@ -147,7 +147,7 @@ namespace MovieApi.Controllers
         {
             var movie = _mapper.Map<Movies>(movieDto);
 
-            _context.Movie.Add(movie);
+            _context.Movies.Add(movie);
             await _context.SaveChangesAsync();
 
             var createdMovieDto = _mapper.Map<MovieDto>(movie);
@@ -158,7 +158,7 @@ namespace MovieApi.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteMovie(int id)
         {
-            var movie = await _context.Movie
+            var movie = await _context.Movies
                 .Include(m => m.MovieDetails)
                 .Include(m => m.Reviews)
                 .Include(m => m.Actor)
@@ -171,7 +171,7 @@ namespace MovieApi.Controllers
 
             var deletedMovieDto = _mapper.Map<MovieDto>(movie);
 
-            _context.Movie.Remove(movie);
+            _context.Movies.Remove(movie);
             await _context.SaveChangesAsync();
 
             return Ok(deletedMovieDto);
@@ -179,7 +179,7 @@ namespace MovieApi.Controllers
 
         private bool MovieExists(int id)
         {
-            return _context.Movie.Any(e => e.Id == id);
+            return _context.Movies.Any(e => e.Id == id);
         }
     }
 

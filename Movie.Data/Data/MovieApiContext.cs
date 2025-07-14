@@ -1,16 +1,18 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Movie.Core.Domain.Models.Entities;
+//using DbContext = Microsoft.EntityFrameworkCore.DbContext;
 
 namespace MovieApi.Data
 {
-    public class MovieApiContext : DbContext
+    public class MovieDbContext : DbContext
     {
         public DbSet<Actor> Actor { get; set; } = default!;
         public DbSet<MovieDetails> MovieDetails { get; set; } = default!;
         public DbSet<Review> Review { get; set; } = default!;
-        public DbSet<Movies> Movie { get; set; } = default!;
+        public DbSet<Movies> Movies { get; set; } = default!;
         public DbSet<MovieActor> MovieActor { get; set; }
 
-        public MovieApiContext(DbContextOptions<MovieApiContext> options)
+        public MovieDbContext(DbContextOptions<MovieDbContext> options)
             : base(options)
         {
 

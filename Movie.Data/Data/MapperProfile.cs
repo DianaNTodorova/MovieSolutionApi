@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using Movie.Core.Domain.Models.DTOs;
+using Movie.Core.Domain.Models.Entities;
 
 namespace MovieApi.Data
 {
