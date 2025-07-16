@@ -14,5 +14,7 @@ namespace Movie.Core.Domain.Contracts
         void Add(MovieActor movieActor);
         void Remove(MovieActor movieActor);
         Task<List<MovieActor>> GetAllAsync();
+        Task<bool> AnyAsync(int movieId, int actorId);
+        
     }
 }

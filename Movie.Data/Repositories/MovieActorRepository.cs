@@ -40,6 +40,11 @@ namespace Movie.Data.Repositories
                 .Include(ma => ma.Movie)
                 .ToListAsync();
         }
+        public async Task<bool> AnyAsync(int movieId, int actorId)
+        {
+            return await _context.MovieActor
+                .AnyAsync(ma => ma.MovieId == movieId && ma.ActorId == actorId);
+        }
 
 
     }

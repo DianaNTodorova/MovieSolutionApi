@@ -10,7 +10,7 @@ namespace Movie.Core.Domain.Contracts
     public interface IReviewRepository
     {
         Task<IEnumerable<Review>> GetAllAsync();
-        Task<Review> GetAsync(int id);
+        Task<Review>? GetAsync(int id);
         Task<bool> AnyAsync(int id);
         void Add(Review review);
         void Update(Review review);

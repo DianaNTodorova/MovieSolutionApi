@@ -34,6 +34,8 @@ namespace Movie.Data.Repositories
                 .ToListAsync();
         }
 
+
+
         public async Task<MovieDetailsDto?> GetMovieDetailsDtoAsync(int id)
         {
             return await _context.Movies
@@ -56,14 +58,14 @@ namespace Movie.Data.Repositories
                         Id = r.Id,
                         Comment = r.Comment,
                         Rating = r.Rating,
-                        MovieIds = new List<int> { r.MovieId }
+                        MovieIds =  r.MovieId
                     }).ToList()
                 })
                 .FirstOrDefaultAsync();
         }
 
 
-        public async Task<Movies> GetAsync(int id)
+        public async Task<Movies?> GetAsync(int id)
         {
             return await _context.Movies
                 .Include(m => m.MovieDetails)

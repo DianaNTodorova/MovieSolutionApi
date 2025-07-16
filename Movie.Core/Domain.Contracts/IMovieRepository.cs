@@ -11,7 +11,7 @@ namespace Movie.Core.Domain.Contracts
     public interface IMovieRepository
     {
          Task<IEnumerable<Movies>> GetAllAsync();
-         Task<Movies> GetAsync(int id);
+         Task<Movies>? GetAsync(int id);
          Task <bool>AnyAsync(int id);
          Task <MovieDetailsDto>? GetMovieDetailsDtoAsync(int id);
          void Add(Movies movie);

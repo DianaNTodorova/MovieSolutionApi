@@ -58,24 +58,24 @@ namespace MovieApi.Controllers
             _mapper.Map(actorDto, actor);
             _unitOfWork.Actors.Update(actor);
 
-            // Update MovieActor junctions if provided
+           
             if (actorDto.MovieIds != null)
             {
-                // Remove existing MovieActor links
+               
                 var existingLinks = await _unitOfWork.MovieActors.GetByActorIdAsync(id);
                 foreach (var link in existingLinks)
                 {
                     _unitOfWork.MovieActors.Remove(link);
                 }
 
-                // Add new links
+                
                 foreach (var movieId in actorDto.MovieIds)
                 {
                     _unitOfWork.MovieActors.Add(new MovieActor
                     {
                         ActorId = id,
                         MovieId = movieId,
-                        Role = "Unknown" // Optional: Handle role assignment
+                        Role = "Unknown" 
                     });
                 }
             }

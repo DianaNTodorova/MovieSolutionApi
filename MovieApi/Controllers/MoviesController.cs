@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Movie.Core.Domain.Contracts;
-using MovieApi.Data;
+using Movie.Core.Domain.Models;
 
 namespace MovieApi.Controllers
 {
@@ -42,6 +42,8 @@ namespace MovieApi.Controllers
             var movieDto = _mapper.Map<MovieDto>(movie);
             return Ok(movieDto);
         }
+   
+        
         //THIS NEEDS TO BE CHANGED
         // GET: api/Movies/{id}/details
         [HttpGet("{id}/details")]
@@ -83,27 +85,27 @@ namespace MovieApi.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                // Optional: Check if the movie still exists (in case of concurrency issues)
                 if (!await _unitOfWork.Movies.AnyAsync(id))
                 {
                     return NotFound();
                 }
 
-                throw; // Let the exception bubble up if it's another issue
+                throw; 
             }
 
             return NoContent();
         }
-
-        //this need to be reviewd
         [HttpPost("{movieId}/actors")]
         public async Task<IActionResult> AddActorToMovie(int movieId, MovieActorCreateDto dto)
         {
-            var movie = await _unitOfWork.Movies.AnyAsync(movieId);
-            if (!movie) return NotFound();
+            var movieExists = await _unitOfWork.Movies.AnyAsync(movieId);
+            if (!movieExists) return NotFound("Movie not found.");
 
-            var actor = await _unitOfWork.Actors.AnyAsync(dto.ActorId);
-            if (!actor) return NotFound();
+            var actorExists = await _unitOfWork.Actors.AnyAsync(dto.ActorId);
+            if (!actorExists) return NotFound("Actor not found.");
+
+            var associationExists = await _unitOfWork.MovieActors.AnyAsync(movieId, dto.ActorId);
+            if (associationExists) return Conflict("Actor is already associated with this movie.");
 
             var movieActor = new MovieActor
             {
@@ -115,8 +117,17 @@ namespace MovieApi.Controllers
             _unitOfWork.MovieActors.Add(movieActor);
             await _unitOfWork.CompleteAsync();
 
-            return Ok(movieActor);
+            var response = new MovieActor
+            {
+                MovieId = movieActor.MovieId,
+                ActorId = movieActor.ActorId,
+                Role = movieActor.Role
+            };
+
+            return CreatedAtAction(nameof(AddActorToMovie), new { movieId = movieActor.MovieId }, response);
         }
+
+
 
         // POST: api/Movies
         [HttpPost]
