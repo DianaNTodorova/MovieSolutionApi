@@ -11,7 +11,7 @@ namespace Movie.Core.Domain.Models.DTOs
         public string Language { get; set; } = string.Empty;
         [Range(1000000, double.MaxValue, ErrorMessage = "The budget must be at least 1000,000")]
         public decimal Budget { get; set; }
-
-
+        public List<ActorDto>? Actors { get; set; }
+        public List<ReviewDto>? Reviews { get; set; }
     }
 }

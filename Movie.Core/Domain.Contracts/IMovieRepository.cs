@@ -1,4 +1,5 @@
-﻿using Movie.Core.Domain.Models.Entities;
+﻿using Movie.Core.Domain.Models.DTOs;
+using Movie.Core.Domain.Models.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,7 @@ namespace Movie.Core.Domain.Contracts
          Task<IEnumerable<Movies>> GetAllAsync();
          Task<Movies> GetAsync(int id);
          Task <bool>AnyAsync(int id);
+         Task <MovieDetailsDto>? GetMovieDetailsDtoAsync(int id);
          void Add(Movies movie);
          void Update(Movies movie);
          void Remove(Movies movie);

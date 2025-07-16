@@ -1,8 +1,9 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using MovieApi.Data;
-
+using Movie.Core.Domain.Contracts;
+using Movie.Core.Domain.Models.DTOs;
+using Movie.Core.Domain.Models.Entities;
 
 namespace MovieApi.Controllers
 {
@@ -10,20 +11,20 @@ namespace MovieApi.Controllers
     [ApiController]
     public class ActorsController : ControllerBase
     {
-        private readonly MovieDbContext _context;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public ActorsController(MovieDbContext context, IMapper mapper)
+        public ActorsController(IUnitOfWork unitOfWork, IMapper mapper)
         {
-            _context = context;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
         // GET: api/actors
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ActorDto>>> GetActor()
+        public async Task<ActionResult<IEnumerable<ActorDto>>> GetActors()
         {
-            var actors = await _context.Actor.ToListAsync();
+            var actors = await _unitOfWork.Actors.GetAllAsync();
             var actorDtos = _mapper.Map<IEnumerable<ActorDto>>(actors);
             return Ok(actorDtos);
         }
@@ -32,7 +33,7 @@ namespace MovieApi.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<ActorDto>> GetActor(int id)
         {
-            var actor = await _context.Actor.FindAsync(id);
+            var actor = await _unitOfWork.Actors.GetAsync(id);
 
             if (actor == null)
             {
@@ -43,89 +44,77 @@ namespace MovieApi.Controllers
             return Ok(actorDto);
         }
 
+        // PUT: api/actors/5
         [HttpPut("{id}")]
         public async Task<IActionResult> PutActor(int id, ActorDto actorDto)
         {
             if (id != actorDto.Id)
-            {
-                return BadRequest();
-            }
+                return BadRequest("ID mismatch");
 
-
-            var actor = await _context.Actor
-                .Include(a => a.Movie)
-                .FirstOrDefaultAsync(a => a.Id == id);
-
+            var actor = await _unitOfWork.Actors.GetAsync(id);
             if (actor == null)
-            {
                 return NotFound();
-            }
-
 
             _mapper.Map(actorDto, actor);
+            _unitOfWork.Actors.Update(actor);
 
-
+            // Update MovieActor junctions if provided
             if (actorDto.MovieIds != null)
             {
-                // Actor => Movies based on the list of Movie IDs in actorDto
-                var movies = await _context.Movies
-                    .Where(m => actorDto.MovieIds.Contains(m.Id))
-                    .ToListAsync();
-
-                actor.Movie = movies;
-            }
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ActorExists(id))
+                // Remove existing MovieActor links
+                var existingLinks = await _unitOfWork.MovieActors.GetByActorIdAsync(id);
+                foreach (var link in existingLinks)
                 {
-                    return NotFound();
+                    _unitOfWork.MovieActors.Remove(link);
                 }
-                else
+
+                // Add new links
+                foreach (var movieId in actorDto.MovieIds)
                 {
-                    throw;
+                    _unitOfWork.MovieActors.Add(new MovieActor
+                    {
+                        ActorId = id,
+                        MovieId = movieId,
+                        Role = "Unknown" // Optional: Handle role assignment
+                    });
                 }
             }
 
+            await _unitOfWork.CompleteAsync();
             return NoContent();
         }
-
 
         // POST: api/actors
         [HttpPost]
         public async Task<ActionResult<ActorDto>> PostActor(ActorDto actorDto)
         {
             var actor = _mapper.Map<Actor>(actorDto);
-            _context.Actor.Add(actor);
-            await _context.SaveChangesAsync();
+            _unitOfWork.Actors.Add(actor);
+            await _unitOfWork.CompleteAsync();
 
-            var createdActorDto = _mapper.Map<ActorDto>(actor);
-            return CreatedAtAction(nameof(GetActor), new { id = actor.Id }, createdActorDto);
+            var createdDto = _mapper.Map<ActorDto>(actor);
+            return CreatedAtAction(nameof(GetActor), new { id = actor.Id }, createdDto);
         }
 
         // DELETE: api/actors/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteActor(int id)
         {
-            var actor = await _context.Actor.FindAsync(id);
+            var actor = await _unitOfWork.Actors.GetAsync(id);
             if (actor == null)
-            {
                 return NotFound();
-            }
 
-            _context.Actor.Remove(actor);
-            await _context.SaveChangesAsync();
+
+            _unitOfWork.Actors.Remove(actor);
+            await _unitOfWork.CompleteAsync();
 
             return NoContent();
         }
 
-        private bool ActorExists(int id)
+        // Utility
+        private async Task<bool> ActorExists(int id)
         {
-            return _context.Actor.Any(e => e.Id == id);
+            return await _unitOfWork.Actors.AnyAsync(id);
         }
     }
 }

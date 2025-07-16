@@ -1,7 +1,8 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using MovieApi.Data;
+using Movie.Core.Domain.Contracts;
+using Movie.Core.Domain.Models.DTOs;
+using Movie.Core.Domain.Models.Entities;
 
 namespace MovieApi.Controllers
 {
@@ -9,118 +10,103 @@ namespace MovieApi.Controllers
     [ApiController]
     public class ReviewsController : ControllerBase
     {
-        private readonly MovieDbContext _context;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public ReviewsController(MovieDbContext context, IMapper mapper)
+        public ReviewsController(IUnitOfWork unitOfWork, IMapper mapper)
         {
-            _context = context;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
-        // GET: api/Reviews
+        // GET: api/reviews
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Review>>> GetReview()
+        public async Task<ActionResult<IEnumerable<ReviewDto>>> GetReviews()
         {
-            var review = await _context.Review.ToListAsync();
-            if (review == null || !review.Any())
-            {
-                return NotFound();
-            }
-
-            var reviewDtos = _mapper.Map<IEnumerable<ReviewDto>>(review);
+            var reviews = await _unitOfWork.Reviews.GetAllAsync();
+            var reviewDtos = _mapper.Map<IEnumerable<ReviewDto>>(reviews);
             return Ok(reviewDtos);
         }
 
-        // GET: api/Reviews/5
+        // GET: api/reviews/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Review>> GetReview(int id)
+        public async Task<ActionResult<ReviewDto>> GetReview(int id)
         {
-            var review = await _context.Review.FindAsync(id);
+            var review = await _unitOfWork.Reviews.GetAsync(id);
+            if (review == null) return NotFound();
 
-            if (review == null)
-            {
-                return NotFound();
-            }
-
-            return review;
+            var reviewDto = _mapper.Map<ReviewDto>(review);
+            return Ok(reviewDto);
         }
 
-        // PUT: api/Reviews/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        // PUT: api/reviews/5
         [HttpPut("{id}")]
         public async Task<IActionResult> PutReview(int id, ReviewDto reviewDto)
         {
             if (id != reviewDto.Id)
-            {
-                return BadRequest();
-            }
+                return BadRequest("ID mismatch");
 
-            var review = await _context.Review
-                .Include(m => m.Movie)
-                .FirstOrDefaultAsync(a => a.Id == id);
+            var review = await _unitOfWork.Reviews.GetAsync(id);
+            if (review == null)
+                return NotFound();
 
             _mapper.Map(reviewDto, review);
+
+            // Optional: Handle related movies if needed
+            // If Review has a Movie relationship (one-to-many):
             if (reviewDto.MovieIds != null)
             {
+                var movie = await _unitOfWork.Movies.GetAsync(reviewDto.MovieIds);
+                if (movie == null)
+                    return NotFound($"Movie with ID {reviewDto.MovieIds} not found");
 
-                var movies = await _context.Movies
-                    .Where(m => reviewDto.MovieIds.Contains(m.Id))
-                    .ToListAsync();
-                //review.Movie = movies;
+                review.Movie = movie; // Set navigation property
             }
 
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ReviewExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            _unitOfWork.Reviews.Update(review);
+            await _unitOfWork.CompleteAsync();
 
             return NoContent();
         }
 
-        // POST: api/Reviews
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        // POST: api/reviews
         [HttpPost]
-        public async Task<ActionResult<Review>> PostReview(ReviewDto reviewDto)
+        public async Task<ActionResult<ReviewDto>> PostReview(ReviewDto reviewDto)
         {
             var review = _mapper.Map<Review>(reviewDto);
-            _context.Review.Add(review);
-            await _context.SaveChangesAsync();
-            var createReviewDto = _mapper.Map<ReviewDto>(review);
-            return CreatedAtAction("GetReview", new { id = createReviewDto.Id }, createReviewDto);
+
+            if (reviewDto.MovieIds != null)
+            {
+                var movie = await _unitOfWork.Movies.GetAsync(reviewDto.MovieIds);
+                if (movie == null)
+                    return NotFound($"Movie with ID {reviewDto.MovieIds} not found");
+
+                review.Movie = movie;
+            }
+
+            _unitOfWork.Reviews.Add(review);
+            await _unitOfWork.CompleteAsync();
+
+            var createdDto = _mapper.Map<ReviewDto>(review);
+            return CreatedAtAction(nameof(GetReview), new { id = createdDto.Id }, createdDto);
         }
 
-        // DELETE: api/Reviews/5
+        // DELETE: api/reviews/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteReview(int id)
         {
-            var review = await _context.Review.FindAsync(id);
-            if (review == null)
-            {
-                return NotFound();
-            }
-            var deleteReviewDto = _mapper.Map<ReviewDto>(review);
-            _context.Review.Remove(review);
-            await _context.SaveChangesAsync();
+            var review = await _unitOfWork.Reviews.GetAsync(id);
+            if (review == null) return NotFound();
 
-            return Ok(deleteReviewDto);
+            _unitOfWork.Reviews.Remove(review);
+            await _unitOfWork.CompleteAsync();
+
+            return Ok(_mapper.Map<ReviewDto>(review));
         }
 
-        private bool ReviewExists(int id)
+        private async Task<bool> ReviewExists(int id)
         {
-            return _context.Review.Any(e => e.Id == id);
+            return await _unitOfWork.Reviews.AnyAsync(id);
         }
     }
 }

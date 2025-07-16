@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Movie.Core.Domain.Contracts;
 using MovieApi.Data;
 
 namespace MovieApi.Controllers
@@ -9,12 +10,12 @@ namespace MovieApi.Controllers
     [ApiController]
     public class MoviesController : ControllerBase
     {
-        private readonly MovieDbContext _context;
+        private readonly IUnitOfWork _unitOfWork; 
         private readonly IMapper _mapper;
 
-        public MoviesController(MovieDbContext context, IMapper mapper)
+        public MoviesController(IUnitOfWork unitOfWork, IMapper mapper)
         {
-            _context = context;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
@@ -22,12 +23,7 @@ namespace MovieApi.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<MovieDto>>> GetMovie()
         {
-            var movies = await _context.Movies
-                .Include(m => m.MovieDetails)
-                .Include(m => m.Reviews)
-                .Include(m => m.Actor)
-                .ToListAsync();
-
+            var movies = await _unitOfWork.Movies.GetAllAsync();
             var movieDtos = _mapper.Map<IEnumerable<MovieDto>>(movies);
             return Ok(movieDtos);
         }
@@ -36,11 +32,7 @@ namespace MovieApi.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<MovieDto>> GetMovie(int id)
         {
-            var movie = await _context.Movies
-                .Include(m => m.MovieDetails)
-                .Include(m => m.Reviews)
-                .Include(m => m.Actor)
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var movie = await _unitOfWork.Movies.GetAsync(id);
 
             if (movie == null)
             {
@@ -50,36 +42,13 @@ namespace MovieApi.Controllers
             var movieDto = _mapper.Map<MovieDto>(movie);
             return Ok(movieDto);
         }
-
+        //THIS NEEDS TO BE CHANGED
         // GET: api/Movies/{id}/details
         [HttpGet("{id}/details")]
         public async Task<ActionResult<MovieDetailsDto>> GetMovieDetails(int id)
         {
-            var movie = await _context.Movies
-                .Where(m => m.Id == id)
-                .Select(m => new //using anonymous function worked with nested details
-                {
-                    Details = new MovieDetailsDto
-                    {
-                        Synopsis = m.MovieDetails.Synopsis,
-                        Language = m.MovieDetails.Language,
-                        Budget = m.MovieDetails.Budget,
-                    },
-                    Actor = m.Actor.Select(a => new ActorDto
-                    {
-                        Id = a.Id,
-                        Name = a.Name,
-                        BirthYear = a.BirthYear
-                    }).ToList(),
-                    Review = m.Reviews.Select(r => new ReviewDto
-                    {
-                        Id = r.Id,
-                        Comment = r.Comment,
-                        Rating = r.Rating,
-                        MovieIds = new List<int> { r.MovieId }
-                    }).ToList()
-                })
-                .FirstOrDefaultAsync();
+            var movie = await _unitOfWork.Movies.GetMovieDetailsDtoAsync(id);
+
 
             if (movie == null)
             {
@@ -88,7 +57,6 @@ namespace MovieApi.Controllers
 
             return Ok(movie);
         }
-
 
 
         // PUT: api/Movies/5
@@ -100,33 +68,42 @@ namespace MovieApi.Controllers
                 return BadRequest("ID mismatch");
             }
 
-            var movie = await _context.Movies.FindAsync(id);
+            var movie = await _unitOfWork.Movies.GetAsync(id);
             if (movie == null)
             {
                 return NotFound();
             }
 
             _mapper.Map(movieDto, movie);
+            _unitOfWork.Movies.Update(movie);
 
             try
             {
-                await _context.SaveChangesAsync();
+                await _unitOfWork.CompleteAsync();
             }
-            catch (DbUpdateConcurrencyException) when (!MovieExists(id))
+            catch (DbUpdateConcurrencyException)
             {
-                return NotFound();
+                // Optional: Check if the movie still exists (in case of concurrency issues)
+                if (!await _unitOfWork.Movies.AnyAsync(id))
+                {
+                    return NotFound();
+                }
+
+                throw; // Let the exception bubble up if it's another issue
             }
 
             return NoContent();
         }
+
+        //this need to be reviewd
         [HttpPost("{movieId}/actors")]
         public async Task<IActionResult> AddActorToMovie(int movieId, MovieActorCreateDto dto)
         {
-            var movie = await _context.Movies.FindAsync(movieId);
-            if (movie == null) return NotFound();
+            var movie = await _unitOfWork.Movies.AnyAsync(movieId);
+            if (!movie) return NotFound();
 
-            var actor = await _context.Actor.FindAsync(dto.ActorId);
-            if (actor == null) return NotFound();
+            var actor = await _unitOfWork.Actors.AnyAsync(dto.ActorId);
+            if (!actor) return NotFound();
 
             var movieActor = new MovieActor
             {
@@ -135,8 +112,8 @@ namespace MovieApi.Controllers
                 Role = dto.Role
             };
 
-            _context.MovieActor.Add(movieActor);
-            await _context.SaveChangesAsync();
+            _unitOfWork.MovieActors.Add(movieActor);
+            await _unitOfWork.CompleteAsync();
 
             return Ok(movieActor);
         }
@@ -147,8 +124,8 @@ namespace MovieApi.Controllers
         {
             var movie = _mapper.Map<Movies>(movieDto);
 
-            _context.Movies.Add(movie);
-            await _context.SaveChangesAsync();
+            _unitOfWork.Movies.Add(movie);
+            await _unitOfWork.CompleteAsync();
 
             var createdMovieDto = _mapper.Map<MovieDto>(movie);
             return CreatedAtAction(nameof(GetMovie), new { id = createdMovieDto.Id }, createdMovieDto);
@@ -158,11 +135,8 @@ namespace MovieApi.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteMovie(int id)
         {
-            var movie = await _context.Movies
-                .Include(m => m.MovieDetails)
-                .Include(m => m.Reviews)
-                .Include(m => m.Actor)
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var movie = await _unitOfWork.Movies
+                .GetAsync(id);
 
             if (movie == null)
             {
@@ -171,15 +145,15 @@ namespace MovieApi.Controllers
 
             var deletedMovieDto = _mapper.Map<MovieDto>(movie);
 
-            _context.Movies.Remove(movie);
-            await _context.SaveChangesAsync();
+            _unitOfWork.Movies.Remove(movie);
+            await _unitOfWork.CompleteAsync();
 
             return Ok(deletedMovieDto);
         }
 
-        private bool MovieExists(int id)
+        private async Task<bool> MovieExists(int id)
         {
-            return _context.Movies.Any(e => e.Id == id);
+            return await _unitOfWork.Movies.AnyAsync(id);
         }
     }
 
