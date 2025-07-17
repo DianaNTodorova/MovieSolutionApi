@@ -46,6 +46,19 @@ namespace Movie.Data.Repositories
                 .AnyAsync(ma => ma.MovieId == movieId && ma.ActorId == actorId);
         }
 
+        public async Task<bool> AnyAsync(MovieActor movieActor)
+        {
+            if (movieActor == null)
+                throw new ArgumentNullException(nameof(movieActor));
 
+            return await _context.MovieActors.AnyAsync(ma =>
+                ma.MovieId == movieActor.MovieId &&
+                ma.ActorId == movieActor.ActorId);
+        }
+
+        Task IMovieActorRepository.AnyAsync(MovieActor movieActor)
+        {
+            return AnyAsync(movieActor);
+        }
     }
 }

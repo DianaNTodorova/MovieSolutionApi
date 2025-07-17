@@ -6,4 +6,12 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Azure.SignalR.Management" Version="1.30.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Movie.Service.Contracts\Movie.Service.Contracts.csproj" />
+  </ItemGroup>
+
 </Project>

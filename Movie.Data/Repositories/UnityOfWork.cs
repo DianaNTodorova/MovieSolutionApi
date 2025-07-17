@@ -35,5 +35,10 @@ namespace Movie.Data.Repositories
         {
              await _context.SaveChangesAsync();
         }
+
+        public Task SaveAsync()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

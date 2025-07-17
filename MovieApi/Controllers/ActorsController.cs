@@ -1,9 +1,9 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Movie.Core.Domain.Contracts;
 using Movie.Core.Domain.Models.DTOs;
-using Movie.Core.Domain.Models.Entities;
+using Movie.Service.Contracts;  // for IServiceManager
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace MovieApi.Controllers
 {
@@ -11,76 +11,47 @@ namespace MovieApi.Controllers
     [ApiController]
     public class ActorsController : ControllerBase
     {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
+        private readonly IServiceManager _service;
 
-        public ActorsController(IUnitOfWork unitOfWork, IMapper mapper)
+        public ActorsController(IServiceManager service)
         {
-            _unitOfWork = unitOfWork;
-            _mapper = mapper;
+            _service = service;
         }
 
         // GET: api/actors
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ActorDto>>> GetActors()
         {
-            var actors = await _unitOfWork.Actors.GetAllAsync();
-            var actorDtos = _mapper.Map<IEnumerable<ActorDto>>(actors);
-            return Ok(actorDtos);
+            var actors = await _service.ActorService.GetAllActorsAsync();
+            return Ok(actors);
         }
 
-        // GET: api/actors/5
+        // GET: api/actors/{id}
         [HttpGet("{id}")]
         public async Task<ActionResult<ActorDto>> GetActor(int id)
         {
-            var actor = await _unitOfWork.Actors.GetAsync(id);
-
+            var actor = await _service.ActorService.GetActorByIdAsync(id);
             if (actor == null)
-            {
                 return NotFound();
-            }
-
-            var actorDto = _mapper.Map<ActorDto>(actor);
-            return Ok(actorDto);
+            return Ok(actor);
         }
 
-        // PUT: api/actors/5
+        // PUT: api/actors/{id}
         [HttpPut("{id}")]
         public async Task<IActionResult> PutActor(int id, ActorDto actorDto)
         {
             if (id != actorDto.Id)
                 return BadRequest("ID mismatch");
 
-            var actor = await _unitOfWork.Actors.GetAsync(id);
-            if (actor == null)
-                return NotFound();
-
-            _mapper.Map(actorDto, actor);
-            _unitOfWork.Actors.Update(actor);
-
-           
-            if (actorDto.MovieIds != null)
+            try
             {
-               
-                var existingLinks = await _unitOfWork.MovieActors.GetByActorIdAsync(id);
-                foreach (var link in existingLinks)
-                {
-                    _unitOfWork.MovieActors.Remove(link);
-                }
-
-                
-                foreach (var movieId in actorDto.MovieIds)
-                {
-                    _unitOfWork.MovieActors.Add(new MovieActor
-                    {
-                        ActorId = id,
-                        MovieId = movieId,
-                        Role = "Unknown" 
-                    });
-                }
+                await _service.ActorService.UpdateActorAsync(actorDto);
+            }
+            catch (InvalidOperationException)
+            {
+                return NotFound();
             }
 
-            await _unitOfWork.CompleteAsync();
             return NoContent();
         }
 
@@ -88,33 +59,31 @@ namespace MovieApi.Controllers
         [HttpPost]
         public async Task<ActionResult<ActorDto>> PostActor(ActorDto actorDto)
         {
-            var actor = _mapper.Map<Actor>(actorDto);
-            _unitOfWork.Actors.Add(actor);
-            await _unitOfWork.CompleteAsync();
+            try
+            {
+                await _service.ActorService.AddActorAsync(actorDto);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(ex.Message);
+            }
 
-            var createdDto = _mapper.Map<ActorDto>(actor);
-            return CreatedAtAction(nameof(GetActor), new { id = actor.Id }, createdDto);
+            return CreatedAtAction(nameof(GetActor), new { id = actorDto.Id }, actorDto);
         }
 
-        // DELETE: api/actors/5
+        // DELETE: api/actors/{id}
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteActor(int id)
         {
-            var actor = await _unitOfWork.Actors.GetAsync(id);
-            if (actor == null)
+            try
+            {
+                await _service.ActorService.DeleteActorAsync(id);
+            }
+            catch (InvalidOperationException)
+            {
                 return NotFound();
-
-
-            _unitOfWork.Actors.Remove(actor);
-            await _unitOfWork.CompleteAsync();
-
+            }
             return NoContent();
-        }
-
-        // Utility
-        private async Task<bool> ActorExists(int id)
-        {
-            return await _unitOfWork.Actors.AnyAsync(id);
         }
     }
 }

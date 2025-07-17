@@ -9,6 +9,7 @@ namespace Movie.Core.Domain.Contracts
     public interface IUnitOfWork
     {
         Task CompleteAsync();
+        Task SaveAsync();
 
         IMovieRepository Movies { get; }
         IActorRepository Actors { get; }

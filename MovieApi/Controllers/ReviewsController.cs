@@ -1,8 +1,8 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Mvc;
-using Movie.Core.Domain.Contracts;
+﻿using Microsoft.AspNetCore.Mvc;
 using Movie.Core.Domain.Models.DTOs;
-using Movie.Core.Domain.Models.Entities;
+using Movie.Service.Contracts;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace MovieApi.Controllers
 {
@@ -10,61 +10,46 @@ namespace MovieApi.Controllers
     [ApiController]
     public class ReviewsController : ControllerBase
     {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
+        private readonly IServiceManager _service;
 
-        public ReviewsController(IUnitOfWork unitOfWork, IMapper mapper)
+        public ReviewsController(IServiceManager service)
         {
-            _unitOfWork = unitOfWork;
-            _mapper = mapper;
+            _service = service;
         }
 
         // GET: api/reviews
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ReviewDto>>> GetReviews()
         {
-            var reviews = await _unitOfWork.Reviews.GetAllAsync();
-            var reviewDtos = _mapper.Map<IEnumerable<ReviewDto>>(reviews);
-            return Ok(reviewDtos);
+            var reviews = await _service.ReviewService.GetAllReviewsAsync();
+            return Ok(reviews);
         }
 
-        // GET: api/reviews/5
+        // GET: api/reviews/{id}
         [HttpGet("{id}")]
         public async Task<ActionResult<ReviewDto>> GetReview(int id)
         {
-            var review = await _unitOfWork.Reviews.GetAsync(id);
-            if (review == null) return NotFound();
-
-            var reviewDto = _mapper.Map<ReviewDto>(review);
-            return Ok(reviewDto);
+            var review = await _service.ReviewService.GetReviewByIdAsync(id);
+            if (review == null)
+                return NotFound();
+            return Ok(review);
         }
 
-        // PUT: api/reviews/5
+        // PUT: api/reviews/{id}
         [HttpPut("{id}")]
         public async Task<IActionResult> PutReview(int id, ReviewDto reviewDto)
         {
             if (id != reviewDto.Id)
                 return BadRequest("ID mismatch");
 
-            var review = await _unitOfWork.Reviews.GetAsync(id);
-            if (review == null)
-                return NotFound();
-
-            _mapper.Map(reviewDto, review);
-
-            // Optional: Handle related movies if needed
-            // If Review has a Movie relationship (one-to-many):
-            if (reviewDto.MovieIds != null)
+            try
             {
-                var movie = await _unitOfWork.Movies.GetAsync(reviewDto.MovieIds);
-                if (movie == null)
-                    return NotFound($"Movie with ID {reviewDto.MovieIds} not found");
-
-                review.Movie = movie; // Set navigation property
+                await _service.ReviewService.UpdateReviewAsync(reviewDto);
             }
-
-            _unitOfWork.Reviews.Update(review);
-            await _unitOfWork.CompleteAsync();
+            catch (InvalidOperationException)
+            {
+                return NotFound();
+            }
 
             return NoContent();
         }
@@ -73,40 +58,31 @@ namespace MovieApi.Controllers
         [HttpPost]
         public async Task<ActionResult<ReviewDto>> PostReview(ReviewDto reviewDto)
         {
-            var review = _mapper.Map<Review>(reviewDto);
-
-            if (reviewDto.MovieIds != null)
+            try
             {
-                var movie = await _unitOfWork.Movies.GetAsync(reviewDto.MovieIds);
-                if (movie == null)
-                    return NotFound($"Movie with ID {reviewDto.MovieIds} not found");
-
-                review.Movie = movie;
+                await _service.ReviewService.AddReviewAsync(reviewDto);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(ex.Message);
             }
 
-            _unitOfWork.Reviews.Add(review);
-            await _unitOfWork.CompleteAsync();
-
-            var createdDto = _mapper.Map<ReviewDto>(review);
-            return CreatedAtAction(nameof(GetReview), new { id = createdDto.Id }, createdDto);
+            return CreatedAtAction(nameof(GetReview), new { id = reviewDto.Id }, reviewDto);
         }
 
-        // DELETE: api/reviews/5
+        // DELETE: api/reviews/{id}
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteReview(int id)
         {
-            var review = await _unitOfWork.Reviews.GetAsync(id);
-            if (review == null) return NotFound();
-
-            _unitOfWork.Reviews.Remove(review);
-            await _unitOfWork.CompleteAsync();
-
-            return Ok(_mapper.Map<ReviewDto>(review));
-        }
-
-        private async Task<bool> ReviewExists(int id)
-        {
-            return await _unitOfWork.Reviews.AnyAsync(id);
+            try
+            {
+                await _service.ReviewService.DeleteReviewAsync(id);
+            }
+            catch (InvalidOperationException)
+            {
+                return NotFound();
+            }
+            return NoContent();
         }
     }
 }

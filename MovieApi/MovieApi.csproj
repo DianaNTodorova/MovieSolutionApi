@@ -11,6 +11,7 @@
     <PackageReference Include="DgmlImage" Version="1.2.0.1" />
     <PackageReference Include="ErikEJ.EntityFrameworkCore.DgmlBuilder" Version="6.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.4" />
+    <PackageReference Include="Microsoft.Azure.SignalR.Management" Version="1.30.3" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.7" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.7" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.0">
@@ -26,6 +27,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Movie.Core\Movie.Core.csproj" />
     <ProjectReference Include="..\Movie.Data\Movie.Data.csproj" />
+    <ProjectReference Include="..\Movie.Service.Contracts\Movie.Service.Contracts.csproj" />
+    <ProjectReference Include="..\Movie.Services\Movie.Services.csproj" />
   </ItemGroup>
 
 </Project>

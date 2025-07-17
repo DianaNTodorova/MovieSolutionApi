@@ -1,8 +1,6 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Movie.Core.Domain.Contracts;
-using Movie.Core.Domain.Models;
+﻿using Microsoft.AspNetCore.Mvc;
+using Movie.Core.Domain.Models.DTOs;
+using Movie.Service.Contracts;
 
 namespace MovieApi.Controllers
 {
@@ -10,162 +8,99 @@ namespace MovieApi.Controllers
     [ApiController]
     public class MoviesController : ControllerBase
     {
-        private readonly IUnitOfWork _unitOfWork; 
-        private readonly IMapper _mapper;
+        private readonly IServiceManager _service;
 
-        public MoviesController(IUnitOfWork unitOfWork, IMapper mapper)
+        public MoviesController(IServiceManager service)
         {
-            _unitOfWork = unitOfWork;
-            _mapper = mapper;
+            _service = service;
         }
 
         // GET: api/Movies
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<MovieDto>>> GetMovie()
+        public async Task<ActionResult<IEnumerable<MovieDto>>> GetMovies()
         {
-            var movies = await _unitOfWork.Movies.GetAllAsync();
-            var movieDtos = _mapper.Map<IEnumerable<MovieDto>>(movies);
-            return Ok(movieDtos);
+            var movies = await _service.MovieService.GetAllMoviesAsync();
+            return Ok(movies);
         }
 
-        // GET: api/Movies/5
+        // GET: api/Movies/{id}
         [HttpGet("{id}")]
         public async Task<ActionResult<MovieDto>> GetMovie(int id)
         {
-            var movie = await _unitOfWork.Movies.GetAsync(id);
-
+            var movie = await _service.MovieService.GetMovieByIdAsync(id);
             if (movie == null)
-            {
                 return NotFound();
-            }
-
-            var movieDto = _mapper.Map<MovieDto>(movie);
-            return Ok(movieDto);
-        }
-   
-        
-        //THIS NEEDS TO BE CHANGED
-        // GET: api/Movies/{id}/details
-        [HttpGet("{id}/details")]
-        public async Task<ActionResult<MovieDetailsDto>> GetMovieDetails(int id)
-        {
-            var movie = await _unitOfWork.Movies.GetMovieDetailsDtoAsync(id);
-
-
-            if (movie == null)
-            {
-                return NotFound();
-            }
 
             return Ok(movie);
         }
 
-
-        // PUT: api/Movies/5
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutMovie(int id, MovieDto movieDto)
+        // GET: api/Movies/{id}/details
+        [HttpGet("{id}/details")]
+        public async Task<ActionResult<MovieDetailsDto>> GetMovieDetails(int id)
         {
-            if (id != movieDto.Id)
-            {
-                return BadRequest("ID mismatch");
-            }
-
-            var movie = await _unitOfWork.Movies.GetAsync(id);
-            if (movie == null)
-            {
+            var details = await _service.MovieService.GetMovieDetailsAsync(id);
+            if (details == null)
                 return NotFound();
-            }
 
-            _mapper.Map(movieDto, movie);
-            _unitOfWork.Movies.Update(movie);
-
-            try
-            {
-                await _unitOfWork.CompleteAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!await _unitOfWork.Movies.AnyAsync(id))
-                {
-                    return NotFound();
-                }
-
-                throw; 
-            }
-
-            return NoContent();
+            return Ok(details);
         }
-        [HttpPost("{movieId}/actors")]
-        public async Task<IActionResult> AddActorToMovie(int movieId, MovieActorCreateDto dto)
-        {
-            var movieExists = await _unitOfWork.Movies.AnyAsync(movieId);
-            if (!movieExists) return NotFound("Movie not found.");
-
-            var actorExists = await _unitOfWork.Actors.AnyAsync(dto.ActorId);
-            if (!actorExists) return NotFound("Actor not found.");
-
-            var associationExists = await _unitOfWork.MovieActors.AnyAsync(movieId, dto.ActorId);
-            if (associationExists) return Conflict("Actor is already associated with this movie.");
-
-            var movieActor = new MovieActor
-            {
-                MovieId = movieId,
-                ActorId = dto.ActorId,
-                Role = dto.Role
-            };
-
-            _unitOfWork.MovieActors.Add(movieActor);
-            await _unitOfWork.CompleteAsync();
-
-            var response = new MovieActor
-            {
-                MovieId = movieActor.MovieId,
-                ActorId = movieActor.ActorId,
-                Role = movieActor.Role
-            };
-
-            return CreatedAtAction(nameof(AddActorToMovie), new { movieId = movieActor.MovieId }, response);
-        }
-
-
 
         // POST: api/Movies
         [HttpPost]
-        public async Task<ActionResult<MovieDto>> PostMovie(MovieCreateDto movieDto)
+        public async Task<ActionResult<MovieDto>> CreateMovie(MovieCreateDto dto)
         {
-            var movie = _mapper.Map<Movies>(movieDto);
+            var createdMovie = await _service.MovieService.CreateMovieAsync(dto);
+            await _service.SaveAsync();
 
-            _unitOfWork.Movies.Add(movie);
-            await _unitOfWork.CompleteAsync();
-
-            var createdMovieDto = _mapper.Map<MovieDto>(movie);
-            return CreatedAtAction(nameof(GetMovie), new { id = createdMovieDto.Id }, createdMovieDto);
+            return CreatedAtAction(nameof(GetMovie), new { id = createdMovie.Id }, createdMovie);
         }
 
-        // DELETE: api/Movies/5
+        // PUT: api/Movies/{id}
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateMovie(int id, MovieDto dto)
+        {
+            if (id != dto.Id)
+                return BadRequest("Movie ID mismatch.");
+
+            var updated = await _service.MovieService.UpdateMovieAsync(id, dto);
+            if (!updated)
+                return NotFound();
+
+            await _service.SaveAsync();
+            return NoContent();
+        }
+
+        // DELETE: api/Movies/{id}
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteMovie(int id)
         {
-            var movie = await _unitOfWork.Movies
-                .GetAsync(id);
-
-            if (movie == null)
-            {
+            var deletedMovie = await _service.MovieService.DeleteMovieAsync(id);
+            if (deletedMovie == null)
                 return NotFound();
-            }
 
-            var deletedMovieDto = _mapper.Map<MovieDto>(movie);
-
-            _unitOfWork.Movies.Remove(movie);
-            await _unitOfWork.CompleteAsync();
-
-            return Ok(deletedMovieDto);
+            await _service.SaveAsync();
+            return Ok(deletedMovie);
         }
 
-        private async Task<bool> MovieExists(int id)
+        // POST: api/Movies/{movieId}/actors
+        [HttpPost("{movieId}/actors")]
+        public async Task<IActionResult> AddActorToMovie(int movieId, MovieActorCreateDto dto)
         {
-            return await _unitOfWork.Movies.AnyAsync(id);
+            try
+            {
+                await _service.MovieService.AddActorToMovieAsync(movieId, dto);
+                await _service.SaveAsync();
+                return Ok(new { Message = "Actor added to movie." });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(ex.Message);
+            }
         }
-    }
 
+    }
 }

@@ -1,13 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Graph.Models;
 using Movie.Core.Domain.Contracts;
 using Movie.Core.Domain.Models.DTOs;
 using Movie.Core.Domain.Models.Entities;
 using MovieApi.Data;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Movie.Data.Repositories
@@ -17,9 +14,9 @@ namespace Movie.Data.Repositories
         private readonly MovieDbContext _context;
         public MovieRepository(MovieDbContext context)
         {
-         _context = context;
+            _context = context;
         }
-     
+
         public async Task<bool> AnyAsync(int id)
         {
             return await _context.Movies.AnyAsync(m => m.Id == id);
@@ -34,19 +31,15 @@ namespace Movie.Data.Repositories
                 .ToListAsync();
         }
 
-
-
         public async Task<MovieDetailsDto?> GetMovieDetailsDtoAsync(int id)
         {
             return await _context.Movies
                 .Where(m => m.Id == id)
                 .Select(m => new MovieDetailsDto
                 {
-                    
-                        Synopsis = m.MovieDetails.Synopsis,
-                        Language = m.MovieDetails.Language,
-                        Budget = m.MovieDetails.Budget
-                   ,
+                    Synopsis = m.MovieDetails.Synopsis,
+                    Language = m.MovieDetails.Language,
+                    Budget = m.MovieDetails.Budget,
                     Actors = m.MovieActors.Select(a => new ActorDto
                     {
                         Id = a.Actor.Id,
@@ -58,12 +51,11 @@ namespace Movie.Data.Repositories
                         Id = r.Id,
                         Comment = r.Comment,
                         Rating = r.Rating,
-                        MovieIds =  r.MovieId
+                        MovieIds = r.MovieId
                     }).ToList()
                 })
                 .FirstOrDefaultAsync();
         }
-
 
         public async Task<Movies?> GetAsync(int id)
         {
@@ -73,11 +65,11 @@ namespace Movie.Data.Repositories
                 .Include(m => m.MovieActors)
                 .FirstOrDefaultAsync(m => m.Id == id);
         }
+
         public void Add(Movies movie)
         {
             _context.Movies.Add(movie);
         }
-
 
         public void Remove(Movies movie)
         {
@@ -87,6 +79,29 @@ namespace Movie.Data.Repositories
         public void Update(Movies movie)
         {
             _context.Movies.Update(movie);
+        }
+
+        // Implement AddAsync to add and save asynchronously
+        public async Task AddAsync(Movies movie)
+        {
+            await _context.Movies.AddAsync(movie);
+            await _context.SaveChangesAsync();
+        }
+
+        // Implement DeleteAsync to find, remove, and save asynchronously
+        public async Task DeleteAsync(int id)
+        {
+            var movie = await _context.Movies.FindAsync(id);
+            if (movie != null)
+            {
+                _context.Movies.Remove(movie);
+                await _context.SaveChangesAsync();
+            }
+            else
+            {
+                // You can decide to throw or ignore if not found
+                throw new KeyNotFoundException($"Movie with ID {id} not found.");
+            }
         }
     }
 }

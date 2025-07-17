@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Movie.Core.Domain.Contracts;
+using Movie.Services;
 using Movie.Data.Repositories;
 using MovieApi.Data;
+using Movie.Service.Contracts;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +23,8 @@ builder.Services.AddScoped<IActorRepository, ActorRepository>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<IMovieActorRepository, MovieActorRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnityOfWork>();
+builder.Services.AddScoped<IServiceManager, ServiceManager>();
+
 
 
 builder.Services.AddAutoMapper(cfg =>
