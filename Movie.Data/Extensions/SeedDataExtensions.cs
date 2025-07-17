@@ -3,14 +3,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Movie.Core.Domain.Models.Entities;
 using MovieApi.Data;
-
-
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 public static class SeedDataExtensions
 {
     public static void SeedData(this WebApplication app) //app.SeedData();
     {
-       
         using var scope = app.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<MovieDbContext>();
         context.Database.Migrate();
@@ -29,12 +29,12 @@ public static class SeedDataExtensions
                         new Review { Rating = 5, Comment = "Amazing movie!" },
                         new Review { Rating = 4, Comment = "Great plot!" }
                     },
-                    Actor = new List<Actor>
+                    MovieDetails = new MovieDetails { Synopsis = "Some great movie", Language = "English", Budget = 100000 },
+                    MovieActors = new List<MovieActor>
                     {
-                        new Actor { Name = "Leonardo DiCaprio", BirthYear = new DateTime(1969, 5, 5) },
-                        new Actor { Name = "Leonardo SomeOne", BirthYear = new DateTime(1969, 5, 5) }
-                    },
-                    MovieDetails = new MovieDetails { Synopsis = "Some great movie", Language = "English", Budget = 100000 }
+                        new MovieActor { Actor = new Actor { Name = "Leonardo DiCaprio", BirthYear = new DateTime(1969, 5, 5) } },
+                        new MovieActor { Actor = new Actor { Name = "Leonardo SomeOne", BirthYear = new DateTime(1969, 5, 5) } }
+                    }
                 },
                 new Movies
                 {
@@ -47,12 +47,12 @@ public static class SeedDataExtensions
                         new Review { Rating = 5, Comment = "Mind-bending masterpiece!" },
                         new Review { Rating = 4, Comment = "Creative and thrilling plot!" }
                     },
-                    Actor = new List<Actor>
+                    MovieDetails = new MovieDetails { Synopsis = "A thief who enters the dreams of others to steal their secrets.", Language = "English", Budget = 160000000 },
+                    MovieActors = new List<MovieActor>
                     {
-                        new Actor { Name = "Leonardo DiCaprio", BirthYear = new DateTime(1974, 11, 11) },
-                        new Actor { Name = "Joseph Gordon-Levitt", BirthYear = new DateTime(1981, 2, 17) }
-                    },
-                    MovieDetails = new MovieDetails { Synopsis = "A thief who enters the dreams of others to steal their secrets.", Language = "English", Budget = 160000000 }
+                        new MovieActor { Actor = new Actor { Name = "Leonardo DiCaprio", BirthYear = new DateTime(1974, 11, 11) } },
+                        new MovieActor { Actor = new Actor { Name = "Joseph Gordon-Levitt", BirthYear = new DateTime(1981, 2, 17) } }
+                    }
                 },
                 new Movies
                 {
@@ -65,12 +65,12 @@ public static class SeedDataExtensions
                         new Review { Rating = 5, Comment = "Revolutionary and mind-blowing!" },
                         new Review { Rating = 4, Comment = "Changed the landscape of sci-fi action!" }
                     },
-                    Actor = new List<Actor>
+                    MovieDetails = new MovieDetails { Synopsis = "A computer hacker learns about the true nature of reality and his role in the war against its controllers.", Language = "English", Budget = 63000000 },
+                    MovieActors = new List<MovieActor>
                     {
-                        new Actor { Name = "Keanu Reeves", BirthYear = new DateTime(1964, 9, 2) },
-                        new Actor { Name = "Carrie-Anne Moss", BirthYear = new DateTime(1967, 8, 21) }
-                    },
-                    MovieDetails = new MovieDetails { Synopsis = "A computer hacker learns about the true nature of reality and his role in the war against its controllers.", Language = "English", Budget = 63000000 }
+                        new MovieActor { Actor = new Actor { Name = "Keanu Reeves", BirthYear = new DateTime(1964, 9, 2) } },
+                        new MovieActor { Actor = new Actor { Name = "Carrie-Anne Moss", BirthYear = new DateTime(1967, 8, 21) } }
+                    }
                 }
             );
 

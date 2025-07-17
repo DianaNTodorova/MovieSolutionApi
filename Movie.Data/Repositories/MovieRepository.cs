@@ -30,7 +30,7 @@ namespace Movie.Data.Repositories
             return await _context.Movies
                 .Include(m => m.MovieDetails)
                 .Include(m => m.Reviews)
-                .Include(m => m.Actor)
+                .Include(m => m.MovieActors)
                 .ToListAsync();
         }
 
@@ -47,11 +47,11 @@ namespace Movie.Data.Repositories
                         Language = m.MovieDetails.Language,
                         Budget = m.MovieDetails.Budget
                    ,
-                    Actors = m.Actor.Select(a => new ActorDto
+                    Actors = m.MovieActors.Select(a => new ActorDto
                     {
-                        Id = a.Id,
-                        Name = a.Name,
-                        BirthYear = a.BirthYear
+                        Id = a.Actor.Id,
+                        Name = a.Actor.Name,
+                        BirthYear = a.Actor.BirthYear
                     }).ToList(),
                     Reviews = m.Reviews.Select(r => new ReviewDto
                     {
@@ -70,7 +70,7 @@ namespace Movie.Data.Repositories
             return await _context.Movies
                 .Include(m => m.MovieDetails)
                 .Include(m => m.Reviews)
-                .Include(m => m.Actor)
+                .Include(m => m.MovieActors)
                 .FirstOrDefaultAsync(m => m.Id == id);
         }
         public void Add(Movies movie)

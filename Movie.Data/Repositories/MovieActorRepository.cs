@@ -19,30 +19,30 @@ namespace Movie.Data.Repositories
         }
         public void Add(MovieActor movieActor)
         {
-            _context.MovieActor.Add(movieActor);
+            _context.MovieActors.Add(movieActor);
         }
         public void Remove(MovieActor movieActor)
         {
-            _context.MovieActor.Remove(movieActor);
+            _context.MovieActors.Remove(movieActor);
         }
 
         public async Task<List<MovieActor>> GetAllAsync()
         {
-            return await _context.MovieActor
+            return await _context.MovieActors
                 .Include(ma => ma.Actor)
                 .Include(ma => ma.Movie)
                 .ToListAsync();
         }
         public async Task<IEnumerable<MovieActor>> GetByActorIdAsync(int actorId)
         {
-            return await _context.MovieActor
+            return await _context.MovieActors
                 .Where(ma => ma.ActorId == actorId)
                 .Include(ma => ma.Movie)
                 .ToListAsync();
         }
         public async Task<bool> AnyAsync(int movieId, int actorId)
         {
-            return await _context.MovieActor
+            return await _context.MovieActors
                 .AnyAsync(ma => ma.MovieId == movieId && ma.ActorId == actorId);
         }
 

@@ -8,8 +8,8 @@
         public string Genre { get; set; } = string.Empty;
         public int Duration { get; set; }
 
-        public MovieDetailsDto MovieDetails { get; set; } = new();
-        public List<ReviewDto> Reviews { get; set; } = new();
-        public List<ActorDto> Actor { get; set; } = new();
+        public MovieDetailsDto? MovieDetails { get; set; } = new();
+        public List<ReviewDto>? Reviews { get; set; } = new();
+        public List<ActorDto>? Actor { get; set; } = new();
     }
 }

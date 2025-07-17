@@ -9,8 +9,8 @@ namespace Movie.Core.Domain.Models.Entities
         public string Name { get; set; } = string.Empty;
         public DateTime BirthYear { get; set; }
         public int MovieId { get; set; }
-        public ICollection<Movies> Movie { get; set; } = new List<Movies>();
-        public ICollection<MovieActor> MovieActors { get; set; }
+        //public ICollection<Movies> Movie { get; set; } = new List<Movies>();
+        public ICollection<MovieActor> MovieActors { get; set; } = new List<MovieActor>();
 
 
     }
