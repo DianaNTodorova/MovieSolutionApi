@@ -11,18 +11,20 @@ namespace Movie.Data.Repositories
     public class UnityOfWork : IUnitOfWork
     {
         private readonly MovieDbContext _context;
-        public UnityOfWork(MovieDbContext context, 
+        public UnityOfWork(MovieDbContext context,
             IMovieRepository movieRepository,
             IActorRepository actorRepository,
             IReviewRepository reviewRepository,
-            IMovieActorRepository movieActorRepository)
+            IMovieActorRepository movieActorRepository,
+            IGenreRepository genreRepository)
+
         {
             _context = context;
             Movies = movieRepository;
             Actors = actorRepository;
             Reviews = reviewRepository;
             MovieActors = movieActorRepository;
-
+            Genres = genreRepository;
         }
         public IMovieRepository Movies { get; }
 
@@ -31,14 +33,16 @@ namespace Movie.Data.Repositories
         public IReviewRepository Reviews { get; }
         public IMovieActorRepository MovieActors { get; }
 
+        public IGenreRepository Genres { get; }
+
         public async Task CompleteAsync()
         {
-             await _context.SaveChangesAsync();
+             await SaveAsync();
         }
 
-        public Task SaveAsync()
+        public async Task SaveAsync()
         {
-            throw new NotImplementedException();
+            await _context.SaveChangesAsync();
         }
     }
 }

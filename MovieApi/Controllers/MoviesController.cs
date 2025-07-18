@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Movie.Core.Domain.Contracts.Utilities;
 using Movie.Core.Domain.Models.DTOs;
 using Movie.Service.Contracts;
+using System.Text.Json;
 
 namespace MovieApi.Controllers
 {
@@ -14,7 +16,34 @@ namespace MovieApi.Controllers
         {
             _service = service;
         }
+        private static readonly List<MovieDto> _movies = Enumerable.Range(1, 250).Select(i =>
+           new MovieDto { Id = i, Title = $"Movie {i}" }
+       ).ToList();
 
+        [HttpGet("pages")]
+        public ActionResult<PagedResult<MovieDto>> GetMoviesPaging([FromQuery] PagingParameters pagingParams)
+        {
+            var totalItems = _movies.Count;
+
+            var items = _movies
+                .Skip((pagingParams.Page - 1) * pagingParams.PageSize)
+                .Take(pagingParams.PageSize)
+                .ToList();
+
+            var result = new PagedResult<MovieDto>(items, totalItems, pagingParams.Page, pagingParams.PageSize);
+
+            var paginationMetadata = new
+            {
+                totalItems = result.TotalItems,
+                currentPage = result.CurrentPage,
+                totalPages = result.TotalPages,
+                pageSize = result.PageSize
+            };
+
+            Response.Headers.Add("X-Pagination", JsonSerializer.Serialize(paginationMetadata));
+
+            return Ok(result);
+        }
         // GET: api/Movies
         [HttpGet]
         public async Task<ActionResult<IEnumerable<MovieDto>>> GetMovies()

@@ -22,6 +22,7 @@ builder.Services.AddScoped<IMovieRepository, MovieRepository>();
 builder.Services.AddScoped<IActorRepository, ActorRepository>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<IMovieActorRepository, MovieActorRepository>();
+builder.Services.AddScoped<IGenreRepository, GenreRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnityOfWork>();
 builder.Services.AddScoped<IServiceManager, ServiceManager>();
 

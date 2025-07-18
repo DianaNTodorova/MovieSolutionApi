@@ -38,6 +38,12 @@ namespace Movie.Services
 
         public async Task<MovieDto> CreateMovieAsync(MovieCreateDto dto)
         {
+            var genre = await _unitOfWork.Genres.GetByIdAsync(dto.GenreId);
+
+            if (genre == null)
+            {
+                throw new ArgumentException($"Genre with ID {dto.GenreId} does not exist.");
+            }
             var movie = _mapper.Map<Movies>(dto);
             await _unitOfWork.Movies.AddAsync(movie);
             await _unitOfWork.SaveAsync();

@@ -32,7 +32,11 @@ namespace MovieApi.Data
             CreateMap<Movies, MovieCreateDto>()
                 .ForMember(dest => dest.Synopsis, opt => opt.MapFrom(src => src.MovieDetails.Synopsis))
                 .ForMember(dest => dest.Language, opt => opt.MapFrom(src => src.MovieDetails.Language))
-                .ForMember(dest => dest.Budget, opt => opt.MapFrom(src => src.MovieDetails.Budget));
+                .ForMember(dest => dest.Budget, opt => opt.MapFrom(src => src.MovieDetails.Budget))
+                ;
+            CreateMap<Movies, MovieDto>()
+                .ForMember(dest => dest.GenreName, opt => opt.MapFrom(src => src.Genres.Name));
+
 
             // Simple mappings between Actor and ActorDto
             CreateMap<Actor, ActorDto>().ReverseMap();

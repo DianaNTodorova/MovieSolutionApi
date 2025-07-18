@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Movie.Core.Domain.Contracts;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,6 +12,7 @@ namespace Movie.Service.Contracts
         IMovieService MovieService { get; }
         IActorService ActorService { get; }
         IReviewService ReviewService { get; }
+
         Task SaveAsync();
         Task<bool> SaveChangesAsync();
     }

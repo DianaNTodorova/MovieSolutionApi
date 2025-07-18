@@ -15,5 +15,7 @@ namespace Movie.Core.Domain.Contracts
         IActorRepository Actors { get; }
         IReviewRepository Reviews { get; }
         IMovieActorRepository MovieActors { get; }
+        IGenreRepository Genres { get; }
+
     }
 }

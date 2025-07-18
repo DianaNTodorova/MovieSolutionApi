@@ -10,6 +10,7 @@ namespace MovieApi.Data
         public DbSet<Review> Reviews { get; set; } = default!;
         public DbSet<Movies> Movies { get; set; } = default!;
         public DbSet<MovieActor> MovieActors { get; set; } = default!;
+        public DbSet<Genre> Genres { get; set; } = default!;
 
         public MovieDbContext(DbContextOptions<MovieDbContext> options)
             : base(options)
@@ -43,6 +44,11 @@ namespace MovieApi.Data
                 .HasOne(ma => ma.Actor)
                 .WithMany(a => a.MovieActors)
                 .HasForeignKey(ma => ma.ActorId);
+            modelBuilder.Entity<Movies>()
+                 .HasOne(m => m.Genres)
+                 .WithMany(g => g.Movies)
+                 .HasForeignKey(m => m.GenreId);
+                
         }
     }
 }

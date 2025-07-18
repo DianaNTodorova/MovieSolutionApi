@@ -28,6 +28,7 @@ namespace Movie.Data.Repositories
                 .Include(m => m.MovieDetails)
                 .Include(m => m.Reviews)
                 .Include(m => m.MovieActors)
+                .Include(m => m.Genres)
                 .ToListAsync();
         }
 
@@ -40,6 +41,7 @@ namespace Movie.Data.Repositories
                     Synopsis = m.MovieDetails.Synopsis,
                     Language = m.MovieDetails.Language,
                     Budget = m.MovieDetails.Budget,
+                    
                     Actors = m.MovieActors.Select(a => new ActorDto
                     {
                         Id = a.Actor.Id,
@@ -63,6 +65,7 @@ namespace Movie.Data.Repositories
                 .Include(m => m.MovieDetails)
                 .Include(m => m.Reviews)
                 .Include(m => m.MovieActors)
+                .Include(m => m.Genres)
                 .FirstOrDefaultAsync(m => m.Id == id);
         }
 
@@ -81,14 +84,12 @@ namespace Movie.Data.Repositories
             _context.Movies.Update(movie);
         }
 
-        // Implement AddAsync to add and save asynchronously
         public async Task AddAsync(Movies movie)
         {
             await _context.Movies.AddAsync(movie);
             await _context.SaveChangesAsync();
         }
 
-        // Implement DeleteAsync to find, remove, and save asynchronously
         public async Task DeleteAsync(int id)
         {
             var movie = await _context.Movies.FindAsync(id);
@@ -99,7 +100,6 @@ namespace Movie.Data.Repositories
             }
             else
             {
-                // You can decide to throw or ignore if not found
                 throw new KeyNotFoundException($"Movie with ID {id} not found.");
             }
         }
