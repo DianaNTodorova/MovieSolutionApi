@@ -32,11 +32,38 @@ namespace Movie.Services
             var exists = await _unitOfWork.Actors.AnyAsync(actorDto.Id);
             if (exists)
                 throw new InvalidOperationException("Actor already exists.");
+
+
             var actor = _mapper.Map<Actor>(actorDto);
             _unitOfWork.Actors.Add(actor);
             await _unitOfWork.SaveAsync();
 
         }
+        public async Task AssignActorToMovieAsync(int actorId, int movieId, string role)
+        {
+            var actor = await _unitOfWork.Actors.GetAsync(actorId);
+            if (actor == null)
+                throw new InvalidOperationException("Actor not found.");
+
+            var movie = await _unitOfWork.Movies.GetMovieWithActorsAsync(movieId);
+            if (movie == null)
+                throw new InvalidOperationException("Movie not found.");
+
+            var alreadyAssigned = await _unitOfWork.MovieActors.AnyAsync(movieId, actorId);
+            if (alreadyAssigned)
+                throw new InvalidOperationException("Skådespelaren är redan tilldelad denna film.");
+
+            var movieActor = new MovieActor
+            {
+                ActorId = actorId,
+                MovieId = movieId,
+                Role = role
+            };
+
+            _unitOfWork.MovieActors.Add(movieActor);
+            await _unitOfWork.SaveAsync();
+        }
+
 
         public async Task DeleteActorAsync(int id)
         {

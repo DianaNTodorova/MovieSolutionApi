@@ -11,10 +11,13 @@ namespace Movie.Core.Domain.Contracts
         Task<Movies> GetAsync(int id);
         Task<bool> AnyAsync(int id);
         Task<MovieDetailsDto> GetMovieDetailsDtoAsync(int id);
+        Task<Movies> GetMovieWithActorsAsync(int movieId);
+
 
         Task AddAsync(Movies movie);
         void Update(Movies movie);
         Task DeleteAsync(int id);
         void Remove(Movies movie);
+      
     }
 }

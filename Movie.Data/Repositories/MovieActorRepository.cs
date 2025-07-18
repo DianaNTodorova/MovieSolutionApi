@@ -33,6 +33,10 @@ namespace Movie.Data.Repositories
                 .Include(ma => ma.Movie)
                 .ToListAsync();
         }
+        public async Task<int> CountByMovieIdAsync(int movieId)
+        {
+            return await _context.MovieActors.CountAsync(ma => ma.MovieId == movieId);
+        }
         public async Task<IEnumerable<MovieActor>> GetByActorIdAsync(int actorId)
         {
             return await _context.MovieActors

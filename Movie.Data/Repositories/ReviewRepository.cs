@@ -45,5 +45,12 @@ namespace Movie.Data.Repositories
         {
             _context.Reviews.Update(review);
         }
+
+        public async Task<IEnumerable<Review>> GetAllByMovieIdAsync(int movieId)
+        {
+            return await _context.Reviews
+                .Where(r => r.MovieId == movieId)
+                .ToListAsync();
+        }
     }
 }

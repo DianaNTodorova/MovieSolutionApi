@@ -89,6 +89,13 @@ namespace Movie.Data.Repositories
             await _context.Movies.AddAsync(movie);
             await _context.SaveChangesAsync();
         }
+        public async Task<Movies> GetMovieWithActorsAsync(int movieId)
+        {
+            return await _context.Movies
+                .Include(m => m.MovieActors)
+                    .ThenInclude(ma => ma.Actor)
+                .FirstOrDefaultAsync(m => m.Id == movieId);
+        }
 
         public async Task DeleteAsync(int id)
         {
@@ -103,5 +110,6 @@ namespace Movie.Data.Repositories
                 throw new KeyNotFoundException($"Movie with ID {id} not found.");
             }
         }
+
     }
 }

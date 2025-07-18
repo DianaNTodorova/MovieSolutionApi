@@ -40,13 +40,31 @@ namespace Movie.Services
         {
             var genre = await _unitOfWork.Genres.GetByIdAsync(dto.GenreId);
 
+           
             if (genre == null)
             {
                 throw new ArgumentException($"Genre with ID {dto.GenreId} does not exist.");
             }
+
+            if (dto.Budget < 0)
+                throw new InvalidOperationException("Budget cannot be negative.");
+
             var movie = _mapper.Map<Movies>(dto);
             await _unitOfWork.Movies.AddAsync(movie);
             await _unitOfWork.SaveAsync();
+
+            if (genre.Name.Equals("Dokumentär", StringComparison.OrdinalIgnoreCase))
+            {
+                if (dto.Budget > 1_000_000)
+                    throw new InvalidOperationException("En dokumentärfilm får inte ha en budget över en miljon.");
+
+                // Count actors linked to this movie:
+                var actorCount = await _unitOfWork.MovieActors.CountByMovieIdAsync(movie.Id);
+                if (actorCount > 10)
+                    throw new InvalidOperationException("En dokumentärfilm får inte ha fler än 10 skådespelare.");
+            }
+
+           
 
             return _mapper.Map<MovieDto>(movie);
         }

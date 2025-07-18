@@ -10,6 +10,8 @@ namespace Movie.Core.Domain.Contracts
     public interface IMovieActorRepository
     {
         Task<IEnumerable<MovieActor>> GetByActorIdAsync(int actorId);
+        Task<int> CountByMovieIdAsync(int movieId);
+
 
         void Add(MovieActor movieActor);
         void Remove(MovieActor movieActor);

@@ -26,10 +26,48 @@ namespace Movie.Services
          var exists = await _unitOfWork.Reviews.AnyAsync(reviewDto.Id);
             if (exists)
                 throw new InvalidOperationException("Review already exists.");
+
+            var movie = await _unitOfWork.Movies.GetAsync(reviewDto.MovieIds);
+            if (movie.Reviews.Count >= 10)
+                throw new InvalidOperationException("A movie can have a maximum of 10 reviews.");
+            if (movie.Year != DateTime.MinValue)
+
+            {
+                int age = DateTime.UtcNow.Year - movie.Year.Year;
+                if (age >= 20)
+                {
+                    await CleanupOldMovieReviewsForMovieAsync(movie.Id);
+                }
+            }
+
             var review = _mapper.Map<Review>(reviewDto);
             _unitOfWork.Reviews.Add(review);
             await _unitOfWork.SaveAsync();
         }
+
+        public async Task CleanupOldMovieReviewsForMovieAsync(int movieId)
+        {
+            var allReviews = await _unitOfWork.Reviews.GetAllAsync();
+
+            var reviews = allReviews
+                .Where(r => r.MovieId == movieId)
+                .OrderBy(r => r.Id)  // Or use CreatedAt if available
+                .ToList();
+
+            if (reviews.Count > 5)
+            {
+                int reviewsToRemove = reviews.Count - 5;
+                for (int i = 0; i < reviewsToRemove; i++)
+                {
+                    _unitOfWork.Reviews.Remove(reviews[i]);
+                }
+                await _unitOfWork.SaveAsync();
+            }
+        }
+
+
+
+
 
         public async Task DeleteReviewAsync(int id)
         {

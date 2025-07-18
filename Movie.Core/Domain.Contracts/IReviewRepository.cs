@@ -15,5 +15,6 @@ namespace Movie.Core.Domain.Contracts
         void Add(Review review);
         void Update(Review review);
         void Remove(Review review);
+        Task<IEnumerable<Review>> GetAllByMovieIdAsync(int movieId);
     }
 }
